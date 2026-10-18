@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Switch2Tube v0.7.1</title>
+<style>
+:root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#0b0b12;color:#f8f8ff}*{box-sizing:border-box}body{margin:0}header{display:flex;align-items:center;gap:12px;padding:18px max(16px,calc((100vw - 1080px)/2));background:#151522;border-bottom:1px solid #2e2e42}h1{font-size:24px;margin:0;letter-spacing:-.6px}.logo{background:#ee334f;border-radius:12px;padding:9px;font-size:22px}main{max-width:1080px;margin:0 auto;padding:24px 16px 60px}.intro{color:#b9b9cb;line-height:1.5}form{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 10px}input{flex:1;min-width:220px;background:#1d1d2d;border:2px solid #44445d;border-radius:12px;padding:15px;color:white;font-size:17px}button{background:#f03a56;color:white;border:0;border-radius:12px;padding:13px 20px;font-size:17px;font-weight:700;cursor:pointer}button:focus,input:focus,.result:focus{outline:4px solid #ffcc66;outline-offset:3px}button.secondary{background:#30304b}.player-shell{background:#151522;border:1px solid #33334c;border-radius:18px;overflow:hidden;margin-top:22px}.player{position:relative;aspect-ratio:16/9;background:#030308}.player iframe{display:block;width:100%;height:100%;border:0}.player .empty{display:grid;place-items:center;height:100%;color:#aaaac0;text-align:center;padding:20px}.meta{padding:15px 18px}.meta strong{display:block;font-size:19px;overflow-wrap:anywhere}.meta small{color:#a9a9c0}#status{color:#b9b9cf;min-height:24px;margin-top:10px}#results{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:18px}.result{display:block;text-align:left;background:#1a1a2a;border:1px solid #34344b;padding:0;overflow:hidden;border-radius:14px;color:white;cursor:pointer}.result img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.result .rtext{padding:12px;font-size:15px;line-height:1.4}.result small{display:block;color:#aaaac0;margin-top:6px}.notice{margin-top:20px;padding:15px;background:#1c1b2c;border-left:4px solid #ef4561;border-radius:8px;color:#bcbcd1;line-height:1.5}.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}a{color:#ff9cab}@media(max-width:600px){h1{font-size:20px}main{padding-top:15px}}
+.diag-entry{border-top:1px solid #414158;padding:9px 0;font-size:14px;overflow-wrap:anywhere}.diag-entry small{color:#b9b9cb;display:block;margin-top:3px}.local-warning{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#e8e8f2;padding:10px}.local-warning img{max-height:75%;max-width:100%;object-fit:contain}.local-warning p{font-size:13px;margin:8px 4px}.player iframe{background:#030308}#submitBtn{white-space:normal}
+/* Sidebar */
+header{padding-right:20px}main{margin-right:max(168px,calc((100vw - 1080px)/2));max-width:960px}.rightbar{position:fixed;right:0;top:0;bottom:0;width:164px;background:#131320;border-left:1px solid #35354c;z-index:10;padding:84px 10px 15px;display:flex;flex-direction:column;gap:10px}.navbutton{display:block;width:100%;font-size:15px;padding:14px 8px;background:#28283d;text-align:left}.navbutton.active{background:#b42a45}.panel-overlay{position:fixed;inset:0;background:#0009;z-index:19;display:none}.panel-overlay.open{display:block}.sidepanel{position:fixed;right:0;top:0;bottom:0;z-index:20;width:min(440px,100vw);background:#191927;border-left:1px solid #45455d;box-shadow:-8px 0 35px #0009;padding:22px;overflow:auto;display:none}.sidepanel.open{display:block}.paneltop{display:flex;align-items:center;justify-content:space-between;gap:12px}.paneltop h2{margin:0}.closepanel{padding:9px 13px}.credititem{background:#222237;border-radius:12px;padding:14px;margin:12px 0;line-height:1.5}.credititem p{color:#bfbfd2;margin:5px 0 0}.credititem a{overflow-wrap:anywhere}.settings-message{font-size:19px;font-weight:700;padding:28px 8px;text-align:center}.footnote{color:#a9a9bf;font-size:13px;line-height:1.5}
+@media(max-width:700px){.rightbar{width:108px;padding:74px 6px 12px}.navbutton{font-size:12px;padding:12px 5px}main{margin-right:108px;padding-left:10px;padding-right:10px}header{padding-left:12px;padding-right:116px}h1{font-size:18px}main h2{font-size:19px}input{min-width:100%;font-size:15px}button{font-size:14px;padding:11px 12px}#results{grid-template-columns:1fr}.intro{font-size:14px}}
+/* v0.5.1 : navigation gauche, escamotable et animée */
+header{padding:14px 18px;position:relative;z-index:2}main{max-width:1080px;margin:0 auto;padding:24px 16px 60px}
+.rightbar{left:0;right:auto;width:min(290px,85vw);padding:20px 14px;background:#171726;border-right:1px solid #41415c;border-left:0;z-index:31;transform:translateX(-105%);transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s linear .3s;box-shadow:10px 0 35px #0005;visibility:hidden}
+.rightbar.open{transform:translateX(0);visibility:visible;transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.navhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;font-size:20px}
+.navhead button{padding:8px 12px}.navbutton{font-size:16px;padding:15px;text-align:left}
+.menu-toggle{display:grid;place-items:center;width:44px;height:44px;padding:9px;flex-shrink:0}
+.hamburger{display:flex;flex-direction:column;gap:5px}.hamburger i{display:block;width:23px;height:3px;background:white;border-radius:3px}
+.panel-overlay{z-index:29;opacity:0;display:block;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s}
+.panel-overlay.open{opacity:1;visibility:visible;transition:opacity .3s ease,visibility 0s}
+.sidepanel{left:0;right:auto;width:min(440px,100vw);z-index:32;border-left:0;border-right:1px solid #45455d;box-shadow:8px 0 35px #0009;display:block;visibility:hidden;transform:translateX(-105%);transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s linear .3s}
+.sidepanel.open{visibility:visible;transform:translateX(0);transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s}
+@media(max-width:700px){.rightbar{width:min(290px,85vw);padding:20px 14px}.navbutton{font-size:16px;padding:15px}main{margin:0 auto;padding:16px 14px 60px}header{padding:12px 14px}h1{font-size:20px}input{min-width:100%}#results{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.rightbar,.sidepanel,.panel-overlay{transition:none}}
+/* Fullscreen de l’aperçu, avec repli pour navigateurs anciens */
+#fullscreen{margin-left:auto;white-space:nowrap}
+.player-shell:fullscreen,.player-shell:-webkit-full-screen,.player-shell.simulated-fullscreen{background:#030308;border:0;border-radius:0;margin:0;width:100%;height:100%;display:flex;flex-direction:column}
+.player-shell:fullscreen .player,.player-shell:-webkit-full-screen .player,.player-shell.simulated-fullscreen .player{aspect-ratio:auto;flex:1;min-height:0}
+.player-shell:fullscreen .meta,.player-shell:-webkit-full-screen .meta,.player-shell.simulated-fullscreen .meta{padding:8px 12px;background:#151522}
+.player-shell:fullscreen .meta strong,.player-shell:-webkit-full-screen .meta strong,.player-shell.simulated-fullscreen .meta strong{display:none}
+.player-shell:fullscreen .meta small,.player-shell:-webkit-full-screen .meta small,.player-shell.simulated-fullscreen .meta small{display:none}
+.player-shell:fullscreen .tools,.player-shell:-webkit-full-screen .tools,.player-shell.simulated-fullscreen .tools{margin-top:0;justify-content:flex-end}
+.player-shell:fullscreen #reload,.player-shell:-webkit-full-screen #reload,.player-shell.simulated-fullscreen #reload{display:none}
+.player-shell.simulated-fullscreen{position:fixed;inset:0;z-index:1000}
+body.simulated-fullscreen-active{overflow:hidden}
+@media(max-width:600px){#fullscreen{margin-left:auto}}
+/* v0.6.0 : boutons tactiles sans surbrillance bleue et plein écran compact */
+html,body,button,a,input,.result{-webkit-tap-highlight-color:transparent}
+button:focus:not(:focus-visible),input:focus:not(:focus-visible),.result:focus:not(:focus-visible){outline:none}
+button:focus-visible,input:focus-visible,.result:focus-visible{outline:3px solid #ffcc66;outline-offset:3px}
+#fullscreen{width:42px;height:42px;min-width:42px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;padding:0;font-size:25px;line-height:1;border-radius:11px;flex-shrink:0}
+
+/* v0.6.0 : thèmes sélectionnables, compatibles avec les navigateurs sans CSS moderne */
+.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.theme-choice{display:flex;align-items:center;flex-direction:column;gap:9px;position:relative;min-height:116px;padding:13px 8px;background:#30304b;border:2px solid transparent;border-radius:15px;font-size:14px}
+.theme-choice[aria-pressed="true"]{border-color:#ffcc66}
+.theme-swatch{width:70px;height:43px;border-radius:9px;border:2px solid #8887;box-shadow:inset 0 0 0 5px #ffffff10,0 3px 8px #0004}
+.swatch-dark{background:linear-gradient(135deg,#0b0b12 50%,#ed3857 50%)}
+.swatch-light{background:linear-gradient(135deg,#fff 50%,#e34b68 50%)}
+.swatch-aero{background:linear-gradient(140deg,#dff8ff,#54b8ef 42%,#1566b0 65%,#b9edff)}
+.swatch-skeuo{background:linear-gradient(140deg,#f5e3bc,#ab7b47 50%,#51351e)}
+.theme-check{display:none;position:absolute;right:10px;top:8px;color:#ffcc66}.theme-choice[aria-pressed="true"] .theme-check{display:block}
+/* Couleurs appliquées après les règles historiques pour conserver la disposition */
+html[data-theme="light"]{color-scheme:light;background:#f5f6fa;color:#202332}
+html[data-theme="light"] body{background:#f5f6fa;color:#202332}
+html[data-theme="light"] header,html[data-theme="light"] .player-shell{background:#fff;border-color:#d8dce7}
+html[data-theme="light"] .rightbar,html[data-theme="light"] .sidepanel{background:#fff;border-color:#d5dbe8;color:#202332}
+html[data-theme="light"] .credititem,html[data-theme="light"] .notice{background:#f0f2f8;color:#42465b}
+html[data-theme="light"] .result{background:#fff;color:#202332;border-color:#d7dbe7}
+html[data-theme="light"] input{background:#fff;color:#202332;border-color:#9ba5bc}
+html[data-theme="light"] .intro,html[data-theme="light"] #status,html[data-theme="light"] .meta small,html[data-theme="light"] .credititem p,html[data-theme="light"] .footnote,html[data-theme="light"] .result small{color:#535b70}
+html[data-theme="light"] .meta{background:#fff;color:#202332}
+html[data-theme="light"] .secondary,html[data-theme="light"] .navbutton,html[data-theme="light"] .theme-choice{background:#e6eaf3;color:#24283a}
+html[data-theme="light"] .hamburger i{background:#24283a}
+html[data-theme="light"] a{color:#a71d4d}
+html[data-theme="light"] .theme-choice[aria-pressed="true"]{border-color:#d42b59}
+html[data-theme="light"] .theme-check{color:#c51f51}
+html[data-theme="aero"]{color-scheme:light;background:#b3dbf4;color:#173451}
+html[data-theme="aero"] body{background:linear-gradient(150deg,#e4f7ff 0%,#a3d8f5 48%,#68a9d5 100%) fixed;color:#173451}
+html[data-theme="aero"] header,html[data-theme="aero"] .rightbar,html[data-theme="aero"] .sidepanel,html[data-theme="aero"] .player-shell{background:linear-gradient(145deg,#ffffffdc,#c0e4fae8);border:1px solid #ffffffb5;box-shadow:0 7px 22px #285a8645, inset 0 1px #fff}
+html[data-theme="aero"] .result,html[data-theme="aero"] .credititem,html[data-theme="aero"] .notice{background:linear-gradient(145deg,#ffffffed,#d2edfcf2);color:#173451;border:1px solid #ffffffc9;box-shadow:0 5px 16px #356e9b30}
+html[data-theme="aero"] input{background:#f5fcff;color:#153553;border-color:#70b5e2}
+html[data-theme="aero"] button{background:linear-gradient(#73d2fa,#187fc3);border:1px solid #b8edff;box-shadow:inset 0 1px #ffffffbd,0 2px 6px #32688e55;color:#fff}
+html[data-theme="aero"] .secondary,html[data-theme="aero"] .navbutton,html[data-theme="aero"] .theme-choice{background:linear-gradient(#f5fcff,#a6d3ef);color:#153a5b;border:1px solid #ffffffc9}
+html[data-theme="aero"] .hamburger i{background:#153a5b}
+html[data-theme="aero"] .intro,html[data-theme="aero"] #status,html[data-theme="aero"] .meta small,html[data-theme="aero"] .credititem p,html[data-theme="aero"] .footnote,html[data-theme="aero"] .result small{color:#375b78}
+html[data-theme="aero"] .meta{background:#d8effae8}
+html[data-theme="aero"] a{color:#065d9a}
+html[data-theme="skeuo"]{color-scheme:light;background:#d3b995;color:#302419}
+html[data-theme="skeuo"] body{background:repeating-linear-gradient(90deg,#d9bf98,#d9bf98 3px,#d5b891 4px,#e2c9a5 7px);color:#302419}
+html[data-theme="skeuo"] header,html[data-theme="skeuo"] .rightbar,html[data-theme="skeuo"] .sidepanel{background:linear-gradient(#f3e2c4,#c49c70);border:2px solid #8b6745;box-shadow:inset 0 2px #fff8,0 5px 13px #53392150}
+html[data-theme="skeuo"] .player-shell,html[data-theme="skeuo"] .result,html[data-theme="skeuo"] .credititem,html[data-theme="skeuo"] .notice{background:linear-gradient(#f8edda,#dfc6a2);color:#302419;border:2px solid #a88761;box-shadow:inset 0 2px #fff9,0 4px 8px #4a311f40}
+html[data-theme="skeuo"] input{background:#fff7e7;color:#302419;border:2px inset #a88a67;border-radius:8px}
+html[data-theme="skeuo"] button{background:linear-gradient(#bd5c49,#792b23);border:1px solid #57271c;border-radius:9px;box-shadow:inset 0 2px #ffffff55,0 3px 4px #51321e60;color:#fff5e5;text-shadow:0 1px #0006}
+html[data-theme="skeuo"] .secondary,html[data-theme="skeuo"] .navbutton,html[data-theme="skeuo"] .theme-choice{background:linear-gradient(#fff2d9,#b99161);color:#392919;border:1px solid #886440;text-shadow:none}
+html[data-theme="skeuo"] .hamburger i{background:#392919}
+html[data-theme="skeuo"] .intro,html[data-theme="skeuo"] #status,html[data-theme="skeuo"] .meta small,html[data-theme="skeuo"] .credititem p,html[data-theme="skeuo"] .footnote,html[data-theme="skeuo"] .result small{color:#624b36}
+html[data-theme="skeuo"] .meta{background:#e8d2b1}
+html[data-theme="skeuo"] a{color:#8e3326}
+@media(max-width:380px){.theme-grid{grid-template-columns:1fr}}
+
+/* v0.7 : matériaux visuels intégrés dans le HTML, aucune image externe nécessaire.
+   Les textures sont des SVG incorporés : grain du cuir et aluminium brossé. */
+.swatch-dark-aero{background:linear-gradient(155deg,#080f23,#153c65 38%,#0e91cd 52%,#0a1528 54%,#03070f);box-shadow:inset 0 2px 4px #ffffff80,0 3px 8px #0008}
+.theme-choice{transition:transform .16s,filter .16s}
+.theme-choice:active{transform:scale(.97)}
+/* Dark Aero : vitres fumées, reflets bleus et bordures lumineuses */
+html[data-theme="dark-aero"]{color-scheme:dark;background:#07101d;color:#e8f5ff}
+html[data-theme="dark-aero"] body{
+ background:radial-gradient(ellipse at 85% 0%,#22629b 0%,transparent 42%),
+ radial-gradient(ellipse at 10% 85%,#104467 0%,transparent 52%),
+ linear-gradient(140deg,#02060d,#0b1a30 55%,#030712) fixed;color:#e8f5ff}
+html[data-theme="dark-aero"] header,
+html[data-theme="dark-aero"] .rightbar,
+html[data-theme="dark-aero"] .sidepanel,
+html[data-theme="dark-aero"] .player-shell{
+ background:linear-gradient(180deg,#9cdfff32 0%,#ffffff13 3%,#143658dd 35%,#050e20f5 100%);
+ border:1px solid #80d8ff73;box-shadow:inset 0 1px #e2faff80,inset 0 -1px #010812,0 8px 25px #000a;backdrop-filter:blur(12px)}
+html[data-theme="dark-aero"] .result,
+html[data-theme="dark-aero"] .credititem,
+html[data-theme="dark-aero"] .notice{
+ background:linear-gradient(160deg,#3c72974f,#091529f5 58%,#060d1b);
+ color:#e8f5ff;border:1px solid #69c4f966;box-shadow:inset 0 1px #ffffff45,0 5px 18px #0009}
+html[data-theme="dark-aero"] input{
+ background:linear-gradient(#061021,#1b3955);border:1px solid #5cbaf2;color:#fff;
+ box-shadow:inset 0 2px 7px #000b,0 1px #a2e5ff50}
+html[data-theme="dark-aero"] button{
+ background:linear-gradient(180deg,#b0ebff 0%,#3b9ed6 5%,#14639e 47%,#0a3d77 49%,#072849 100%);
+ border:1px solid #8cdaff;border-radius:10px;
+ box-shadow:inset 0 1px 1px #fff9,inset 0 -2px 2px #001c3a,0 3px 8px #0009;
+ color:#fff;text-shadow:0 1px 2px #00172e}
+html[data-theme="dark-aero"] button.secondary,
+html[data-theme="dark-aero"] .navbutton,
+html[data-theme="dark-aero"] .theme-choice{
+ background:linear-gradient(#d1edff4a 0%,#31658a88 12%,#102f52 50%,#07162d 51%,#122a49 100%);
+ border:1px solid #79c7fa99}
+html[data-theme="dark-aero"] button:active{filter:brightness(1.2);box-shadow:inset 0 3px 7px #00152c}
+html[data-theme="dark-aero"] .meta{background:linear-gradient(#112a45,#071221)}
+html[data-theme="dark-aero"] .intro,
+html[data-theme="dark-aero"] #status,
+html[data-theme="dark-aero"] .meta small,
+html[data-theme="dark-aero"] .credititem p,
+html[data-theme="dark-aero"] .footnote,
+html[data-theme="dark-aero"] .result small{color:#b1d3ec}
+html[data-theme="dark-aero"] a{color:#7cddff}
+html[data-theme="dark-aero"] .hamburger i{background:#d6f4ff}
+/* Skeuomorphisme : matériaux et objets, pas simplement une palette marron. */
+html[data-theme="skeuo"] body{
+ background-image:
+ radial-gradient(ellipse at 20% 10%,#fff5d466,transparent 60%),
+ repeating-linear-gradient(95deg,#4e2e1b1a 0px,#c88f5720 2px,#f4d19b29 4px,#6a3d1b1b 7px),
+ linear-gradient(135deg,#b48a5a,#e6c99b 55%,#a97a48);
+ background-attachment:fixed}
+html[data-theme="skeuo"] header,
+html[data-theme="skeuo"] .rightbar,
+html[data-theme="skeuo"] .sidepanel{
+ background-image:repeating-linear-gradient(0deg,#fff2 0px,#0001 1px,#0000 3px),
+ linear-gradient(#f3d9ac,#c18e56 48%,#a67342 49%,#d4a671);
+ border:3px ridge #b68b5b;box-shadow:inset 0 2px #fff8,inset 0 -3px #75492799,0 8px 18px #3e210d77}
+html[data-theme="skeuo"] .player-shell,
+html[data-theme="skeuo"] .credititem,
+html[data-theme="skeuo"] .notice,
+html[data-theme="skeuo"] .result{
+ background-image:repeating-linear-gradient(90deg,#ffffff10 0px,#7b4a1611 2px,#ffffff18 4px),
+ linear-gradient(#fff4dc,#e3c49b 35%,#d5b083);
+ border:3px ridge #b38a5b;border-radius:15px;
+ box-shadow:inset 0 2px #fff9,inset 0 -2px #82563044,0 5px 10px #48250c66}
+html[data-theme="skeuo"] button{
+ background-image:linear-gradient(115deg,#fff3 0%,transparent 25%,#0002 100%),
+ linear-gradient(180deg,#e99e78 0%,#b94c37 10%,#9c382b 48%,#70251d 51%,#5e1c18 100%);
+ border:2px outset #a25d46;border-radius:10px;
+ box-shadow:inset 0 2px 2px #ffe2b277,inset 0 -3px 2px #42120f77,0 4px 2px #51311c88,0 6px 9px #51311c44;
+ color:#fff7df;text-shadow:0 1px 2px #39140d}
+html[data-theme="skeuo"] button.secondary,
+html[data-theme="skeuo"] .navbutton,
+html[data-theme="skeuo"] .theme-choice{
+ background-image:repeating-linear-gradient(0deg,#ffffff16 0px,#0000000b 1px,#0000 3px),
+ linear-gradient(180deg,#fff3d6,#e6c28e 45%,#b88b56 49%,#d5ad77);
+ border:2px outset #cba46e;color:#402b1b;text-shadow:0 1px #fff9}
+html[data-theme="skeuo"] button:active{
+ transform:translateY(2px);border-style:inset;
+ box-shadow:inset 0 3px 7px #44250d88,0 1px 1px #44250d66}
+html[data-theme="skeuo"] input{
+ background:repeating-linear-gradient(0deg,#fff9e8,#fff9e8 25px,#f4e5c7 26px);
+ border:3px inset #a77b4a;box-shadow:inset 0 3px 8px #64421d55;
+ color:#362315}
+html[data-theme="skeuo"] .meta{
+ background:linear-gradient(#f5e5c8,#d5b083);
+ border-top:3px groove #c49c69}
+html[data-theme="skeuo"] .logo{
+ background:radial-gradient(circle at 35% 25%,#ffe1a4,#a83d2d 65%,#5a1b18);
+ border:2px outset #bd744b;box-shadow:inset 0 2px #fff6,0 3px 4px #0005}
+html[data-theme="skeuo"] .result img{border-bottom:4px ridge #b38a5b}
+html[data-theme="skeuo"] .hamburger i{background:#54341e}
+html[data-theme="skeuo"] .player{border:5px inset #6f513a}
+html[data-theme="skeuo"] .theme-choice[aria-pressed="true"]{outline:3px solid #8a3d19}
+/* Aero clair : boutons vitrés et barres de titre plus réalistes */
+html[data-theme="aero"] button{
+ background:linear-gradient(180deg,#fff9 0%,#92dfff 7%,#46a7dd 48%,#1478b9 49%,#08629f 100%);
+ border:1px solid #68b9ea;box-shadow:inset 0 1px #fff,inset 0 -2px #004f89,0 3px 7px #24668a66;
+ text-shadow:0 1px #16456d}
+html[data-theme="aero"] button.secondary,
+html[data-theme="aero"] .navbutton,
+html[data-theme="aero"] .theme-choice{
+ background:linear-gradient(#fff,#d9f5ff 45%,#a5d2eb 49%,#c5e8f9);
+ color:#174365;text-shadow:0 1px #fff}
+html[data-theme="aero"] button:active{transform:translateY(1px);filter:brightness(.93)}
+@media(prefers-reduced-motion:reduce){.theme-choice{transition:none}}
+
+
+/* v0.7.1: landscape compact layout (phone and Switch browser). */
+@media (orientation:landscape) and (max-height:650px) {
+  header{padding:7px 14px;gap:9px;min-height:46px}
+  h1{font-size:19px}
+  .logo{padding:5px 8px;font-size:17px;border-radius:8px}
+  .menu-toggle{width:36px;height:36px;padding:7px}
+  main{max-width:1040px;padding:10px 16px 30px}
+  main h2{font-size:19px;margin:8px 0}
+  .intro{font-size:13px;line-height:1.35;margin:5px 0}
+  form{margin:9px 0 5px;gap:7px;flex-wrap:nowrap;align-items:stretch}
+  input{min-width:0!important;font-size:14px;padding:9px 11px;flex:1}
+  button{font-size:13px;padding:8px 11px}
+  .tools{margin-top:7px;gap:6px}
+  .player-shell{margin-top:12px;max-width:780px;margin-left:auto;margin-right:auto}
+  .player{aspect-ratio:16/9}
+  .meta{padding:8px 12px}
+  .meta strong{font-size:15px}
+  .meta small{font-size:11px}
+  #fullscreen{width:36px;height:36px;min-width:36px;min-height:36px;font-size:22px}
+  #results{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:10px}
+  .result .rtext{font-size:13px;padding:8px}
+  .rightbar{padding:12px}
+  .sidepanel{padding:14px;width:min(390px,80vw)}
+  .theme-grid{gap:8px}
+  .theme-choice{min-height:88px;padding:8px;font-size:12px}
+  .theme-swatch{width:58px;height:34px}
+}
+@media (orientation:landscape) and (max-height:430px) {
+  .player-shell{max-width:min(620px,85vw)}
+  .player{max-height:58vh;aspect-ratio:16/9}
+  main h2{font-size:17px}
+  .intro{font-size:12px}
+  .meta strong{font-size:13px}
+  .meta{padding:6px 10px}
+}
+
+/* v0.8.0: centered landscape player, settings navigation and slide-out animation */
+.settings-home{display:grid;gap:12px;margin-top:22px}
+.settings-entry{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;font-size:18px;min-height:62px}
+.settings-entry span:last-child{font-size:28px;line-height:1}
+.settings-subpage h3{font-size:22px;margin:18px 0 10px}
+.settings-back{padding:9px 15px;font-size:15px}
+.settings-subpage[hidden],.settings-home[hidden]{display:none!important}
+.player-options{display:grid;gap:12px;margin-top:18px}
+.player-choice{display:flex;justify-content:space-between;align-items:center;text-align:left;width:100%;font-size:15px;gap:12px}
+.player-choice[aria-pressed="true"]{outline:2px solid #ffcc66;outline-offset:2px}
+.choice-check{display:none}.player-choice[aria-pressed="true"] .choice-check{display:inline}
+@media (orientation:landscape) and (max-height:650px){
+ .player-shell:not(:fullscreen):not(.simulated-fullscreen){width:min(720px,calc(100% - 24px));max-width:720px;margin:12px auto 0}
+ .player-shell:not(:fullscreen):not(.simulated-fullscreen) .player{width:100%;height:auto;max-height:none;aspect-ratio:16/9}
+ .player-shell:not(:fullscreen):not(.simulated-fullscreen) .meta{width:100%}
+}
+@media (orientation:landscape) and (max-height:430px){
+ .player-shell:not(:fullscreen):not(.simulated-fullscreen){width:min(590px,calc(100% - 24px));max-width:590px}
+ .player-shell:not(:fullscreen):not(.simulated-fullscreen) .player{max-height:none;aspect-ratio:16/9}
+}
+
+/* v0.8.1: pixel-precise centered vector icons, consistent button geometry */
+.logo{display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px;width:40px;height:40px;min-width:40px;min-height:40px;aspect-ratio:1;padding:0;border-radius:11px;line-height:1;vertical-align:middle}
+.logo svg{display:block;width:22px;height:22px;flex:none;transform:translateX(1px)}
+#fullscreen{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;aspect-ratio:1;padding:0;line-height:1}
+#fullscreen svg{display:block;width:22px;height:22px;flex:none}
+@media (orientation:landscape) and (max-height:650px){
+ .logo{width:34px;height:34px;min-width:34px;min-height:34px;flex-basis:34px;border-radius:9px;padding:0}
+ .logo svg{width:19px;height:19px}
+ #fullscreen svg{width:20px;height:20px}
+}
+</style>
+</head>
+<body><header><button type="button" id="menuToggle" class="menu-toggle secondary" aria-label="Open menu" aria-expanded="false" aria-controls="sideNav"><span class="hamburger"><i></i><i></i><i></i></span></button><span class="logo"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5L18 12 8 18.5Z" fill="currentColor"/></svg></span><h1>Switch2Tube</h1><span style="margin-left:auto;color:#bdbdd0;font-size:13px">Version 0.8.1</span></header>
+<nav class="rightbar" id="sideNav" aria-label="Side menu" aria-hidden="true"><div class="navhead"><strong>☰ Menu</strong><button type="button" id="menuClose" class="secondary" aria-label="Close menu">✕</button></div><button type="button" class="navbutton" id="creditsBtn">💜 Credits</button><button type="button" class="navbutton" id="settingsBtn">⚙ Settings</button></nav>
+<div id="overlay" class="panel-overlay"></div>
+<aside id="creditsPanel" class="sidepanel" aria-label="Credits" aria-hidden="true"><div class="paneltop"><h2>💜 Credits</h2><button class="secondary closepanel" type="button" data-close>✕</button></div><p class="intro">Thanks to the projects and services that made Switch2Tube possible.</p>
+<div class="credititem"><strong>🌟 S60Tube</strong><p>Video search provider. Huge thanks for helping older devices access YouTube.</p><a href="https://s60tube.io.vn/" target="_blank" rel="noopener noreferrer">s60tube.io.vn</a></div>
+<div class="credititem"><strong>▶ YouTube</strong><p>Videos, thumbnails and the official embedded player. All content belongs to its respective creators.</p><a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">youtube.com</a></div>
+<div class="credititem"><strong>🐙 GitHub Pages</strong><p>Free hosting for the Switch2Tube website.</p><a href="https://pages.github.com/" target="_blank" rel="noopener noreferrer">pages.github.com</a></div>
+<div class="credititem"><strong>🌐 SwitchBru DNS</strong><p>Browser access on the console to open Switch2Tube.</p><a href="https://switchbru.com/" target="_blank" rel="noopener noreferrer">switchbru.com</a></div>
+<div class="credititem"><strong>🔬 Tools explored during development</strong><p>Piped and Invidious (search providers tested and later replaced); Cloudflare Workers (experimental proxy, not used in this version); J2METube (helped us discover the S60Tube API).</p></div>
+<div class="credititem"><strong>💜 Switch2Tube project</strong><p>An independent project created by LohanDash. Thanks to everyone building open web tools.</p></div>
+<p class="footnote">Switch2Tube is not affiliated with Nintendo, Google/YouTube or any other services mentioned. Being credited does not imply endorsement.</p></aside>
+<aside id="settingsPanel" class="sidepanel" aria-label="Settings" aria-hidden="true"><div class="paneltop"><h2>⚙ Settings</h2><button class="secondary closepanel" type="button" data-close>✕</button></div><div class="settings-home" id="settingsHome">
+<button type="button" class="settings-entry secondary" data-settings-page="themes"><span>🎨 Themes</span><span aria-hidden="true">›</span></button>
+<button type="button" class="settings-entry secondary" data-settings-page="player"><span>▶ Player</span><span aria-hidden="true">›</span></button>
+</div>
+<div class="settings-subpage" id="themesPage" hidden><button type="button" class="settings-back secondary">‹ Back</button><h3>Themes</h3><p class="intro">Your theme is saved on this device when local storage is available.</p>
+<div class="theme-grid" role="group" aria-label="Interface theme">
+<button type="button" class="theme-choice" data-theme-choice="dark"><span class="theme-swatch swatch-dark" aria-hidden="true"></span><span>Dark</span><span class="theme-check" aria-hidden="true">✓</span></button>
+<button type="button" class="theme-choice" data-theme-choice="light"><span class="theme-swatch swatch-light" aria-hidden="true"></span><span>Light</span><span class="theme-check" aria-hidden="true">✓</span></button>
+<button type="button" class="theme-choice" data-theme-choice="aero"><span class="theme-swatch swatch-aero" aria-hidden="true"></span><span>Aero</span><span class="theme-check" aria-hidden="true">✓</span></button>
+<button type="button" class="theme-choice" data-theme-choice="skeuo"><span class="theme-swatch swatch-skeuo" aria-hidden="true"></span><span>Skeuomorphic</span><span class="theme-check" aria-hidden="true">✓</span></button>
+<button type="button" class="theme-choice" data-theme-choice="dark-aero"><span class="theme-swatch swatch-dark-aero" aria-hidden="true"></span><span>Dark Aero</span><span class="theme-check" aria-hidden="true">✓</span></button>
+</div></div>
+<div class="settings-subpage" id="playerPage" hidden><button type="button" class="settings-back secondary">‹ Back</button><h3>Player</h3><p class="intro">Choose which YouTube embed domain to use. This setting is saved when local storage is available.</p>
+<div class="player-options" role="group" aria-label="Video player">
+<button type="button" class="player-choice secondary" data-player-choice="0">▶ YouTube (standard)<span class="choice-check">✓</span></button>
+<button type="button" class="player-choice secondary" data-player-choice="1">🔒 YouTube (privacy-enhanced)<span class="choice-check">✓</span></button>
+</div></div></aside>
+<main><h2>Videos, without fighting your browser.</h2><p class="intro">Paste a YouTube link or search for a video. Playback appears in an embedded preview without intentionally redirecting you to YouTube.</p>
+<form id="form"><input id="query" aria-label="YouTube link or search" placeholder="YouTube link or search…" autocomplete="off"><button type="submit" id="submitBtn">▶ Open / Search</button></form>
+<div class="tools"><button type="button" id="showcase" class="secondary">🎬 Showcase</button></div>
+<div id="status" role="status"></div>
+<section class="player-shell"><div class="player" id="player"><div class="empty">📺<br>Your video preview will appear here.</div></div><div class="meta"><strong id="title">No video selected</strong><small id="detail">Ready to test on Nintendo Switch 2</small><div class="tools"><button class="secondary" id="reload" type="button">↻ Reload preview</button><button class="secondary" id="fullscreen" type="button" aria-label="Enter preview fullscreen" aria-pressed="false" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div></section>
+
+<h2 id="resultsHeading" hidden>Results</h2><div id="results"></div>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),status=$('status');let current='',embedMode=0,secretMode=false;
+function videoId(value){try{let u=new URL(value);let host=u.hostname.replace(/^www\./,'');if(host==='youtu.be')return u.pathname.slice(1).split('/')[0].match(/^[\w-]{11}$/)?.[0]||null;if(['youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com'].includes(host)){let id=u.searchParams.get('v')||u.pathname.match(/\/(?:shorts|embed|live)\/([\w-]{11})/)?.[1];return /^[\w-]{11}$/.test(id||'')?id:null}}catch(e){}return /^[\w-]{11}$/.test(value.trim())?value.trim():null}
+function isHosted(){return location.protocol==='https:'||location.protocol==='http:'}
+function show(id,title,secret=false){
+ current=id;secretMode=secret;
+ $('title').textContent=secret?'Video showcase':(title||'YouTube video');
+ $('detail').textContent=secret?'Ready to play':('Video selected');
+ if(!isHosted()){
+   const wrap=document.createElement('div');wrap.className='local-warning';
+   const img=document.createElement('img');img.alt='Video preview';img.src='https://i.ytimg.com/vi/'+encodeURIComponent(id)+'/hqdefault.jpg';
+   const msg=document.createElement('p');msg.textContent='To play the video without error 153, open the HTTPS version of Switch2Tube on GitHub Pages.';
+   wrap.append(img,msg);$('player').replaceChildren(wrap);
+   status.textContent='Local file mode: playback disabled to avoid error 153.';return;
+ }
+ let domain=embedMode?'www.youtube-nocookie.com':'www.youtube.com';
+ let f=document.createElement('iframe');f.title='YouTube video preview';
+ f.allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen';f.allowFullscreen=true;
+ f.referrerPolicy='strict-origin-when-cross-origin';
+ f.src='https://'+domain+'/embed/'+encodeURIComponent(id)+'?playsinline=1&rel=0';
+ $('player').replaceChildren(f);
+ status.textContent='Player loaded. Press play in the video.';
+}
+// Fullscreen natif si disponible ; mode plein écran CSS en secours (Switch / navigateur limité).
+const playerShell=document.querySelector('.player-shell');
+function isFullScreen(){return document.fullscreenElement===playerShell||document.webkitFullscreenElement===playerShell||playerShell.classList.contains('simulated-fullscreen')}
+function syncFullScreen(){const active=isFullScreen();$('fullscreen').innerHTML=active?'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4v5H4M15 4v5h5M20 15h-5v5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';$('fullscreen').setAttribute('aria-pressed',String(active));$('fullscreen').setAttribute('aria-label',active?'Exit fullscreen':'Enter preview fullscreen')}
+function exitFallback(){playerShell.classList.remove('simulated-fullscreen');document.body.classList.remove('simulated-fullscreen-active');syncFullScreen()}
+$('fullscreen').onclick=async()=>{
+ if(isFullScreen()){
+  if(document.fullscreenElement||document.webkitFullscreenElement){try{if(document.exitFullscreen)await document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen()}catch(e){status.textContent='Unable to exit fullscreen: '+e.message}}
+  else exitFallback();
+  syncFullScreen();return;
+ }
+ if(playerShell.requestFullscreen||playerShell.webkitRequestFullscreen){
+  try{if(playerShell.requestFullscreen)await playerShell.requestFullscreen();else playerShell.webkitRequestFullscreen();syncFullScreen();return}catch(e){}
+ }
+ playerShell.classList.add('simulated-fullscreen');document.body.classList.add('simulated-fullscreen-active');syncFullScreen();
+};
+document.addEventListener('fullscreenchange',syncFullScreen);
+document.addEventListener('webkitfullscreenchange',syncFullScreen);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&playerShell.classList.contains('simulated-fullscreen'))exitFallback()});
+$('reload').onclick=()=>{if(current)show(current,secretMode?'':$('title').textContent,secretMode)};
+function setPlayer(mode){
+ embedMode=mode===1?1:0;
+ for(const b of document.querySelectorAll('[data-player-choice]'))b.setAttribute('aria-pressed',String(Number(b.dataset.playerChoice)===embedMode));
+ try{localStorage.setItem('switch2tube-player',String(embedMode))}catch(e){}
+ if(current)show(current,secretMode?'':$('title').textContent,secretMode);
+}
+let savedPlayer=0;try{savedPlayer=Number(localStorage.getItem('switch2tube-player')||0)}catch(e){}
+setPlayer(savedPlayer);
+for(const b of document.querySelectorAll('[data-player-choice]'))b.onclick=()=>setPlayer(Number(b.dataset.playerChoice));
+$('form').onsubmit=async e=>{e.preventDefault();let q=$('query').value.trim();if(!q)return;let id=videoId(q);if(id){$('results').replaceChildren();$('resultsHeading').hidden=true;show(id);return}await search(q)};
+$('showcase').onclick=()=>{ $('query').value=''; $('results').replaceChildren(); $('resultsHeading').hidden=true; show('dQw4w9WgXcQ','',true); };
+function renderVideos(videos){$('results').replaceChildren();$('resultsHeading').hidden=false;for(let v of videos){let b=document.createElement('button');b.type='button';b.className='result';let img=document.createElement('img');img.loading='lazy';img.alt='';img.src='https://i.ytimg.com/vi/'+v.videoId+'/mqdefault.jpg';let tx=document.createElement('div');tx.className='rtext';tx.textContent=v.title||'Video';let small=document.createElement('small');small.textContent=v.author||'';tx.append(small);b.append(img,tx);b.onclick=()=>{show(v.videoId,v.title);window.scrollTo({top:0,behavior:'smooth'})};$('results').append(b)}status.textContent=videos.length+' results found.'}
+function normalizeS60(data){
+ const raw=Array.isArray(data)?data:(Array.isArray(data?.items)?data.items:(Array.isArray(data?.results)?data.results:[]));
+ const found=[];const seen=new Set();
+ for(const item of raw){
+  if(!item||typeof item!=='object')continue;
+  const id=item.videoId||item.video_id||videoId(item.url||'');
+  if(!/^[\w-]{11}$/.test(id||'')||seen.has(id))continue;
+  if(item.type&&item.type!=='video'&&item.type!=='stream')continue;
+  seen.add(id);found.push({videoId:id,title:item.title||'YouTube video',author:item.author||item.uploaderName||item.channel||''});
+  if(found.length>=24)break;
+ }
+ return found;
+}
+async function search(q){
+ status.textContent='Searching S60Tube…';$('results').replaceChildren();$('resultsHeading').hidden=true;
+ const url='https://s60tube.io.vn/api/v1/search?q='+encodeURIComponent(q);
+ try{
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);
+  let response;
+  try{response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}})}finally{clearTimeout(timer)}
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const data=await response.json();const videos=normalizeS60(data);
+  if(!videos.length){status.textContent='S60Tube responded, but no usable video results were found.';return}
+  renderVideos(videos);
+ }catch(err){
+  status.textContent='Search unavailable: '+(err.name==='AbortError'?'request timed out':err.message)+'. If the S60Tube URL works directly in Chrome, the server may be blocking cross-origin (CORS) requests from this page.';
+ }
+}
+function settingsPage(page){
+ $('settingsHome').hidden=!!page;
+ $('themesPage').hidden=page!=='themes';
+ $('playerPage').hidden=page!=='player';
+}
+for(const b of document.querySelectorAll('[data-settings-page]'))b.onclick=()=>settingsPage(b.dataset.settingsPage);
+for(const b of document.querySelectorAll('.settings-back'))b.onclick=()=>settingsPage(null);
+function closePanels(){
+ for(const id of ['creditsPanel','settingsPanel']){$(id).classList.remove('open');$(id).setAttribute('aria-hidden','true')}
+ $('sideNav').classList.remove('open');$('sideNav').setAttribute('aria-hidden','true');
+ $('menuToggle').setAttribute('aria-expanded','false');$('menuToggle').setAttribute('aria-label','Open menu');
+ $('overlay').classList.remove('open');
+}
+function openMenu(){closePanels();$('sideNav').classList.add('open');$('sideNav').setAttribute('aria-hidden','false');$('overlay').classList.add('open');$('menuToggle').setAttribute('aria-expanded','true');$('menuToggle').setAttribute('aria-label','Close menu')}
+function openPanel(id){closePanels();$(id).classList.add('open');$(id).setAttribute('aria-hidden','false');$('overlay').classList.add('open')}
+$('menuToggle').onclick=()=>$('sideNav').classList.contains('open')?closePanels():openMenu();
+$('menuClose').onclick=closePanels;
+$('creditsBtn').onclick=()=>openPanel('creditsPanel');
+$('settingsBtn').onclick=()=>{settingsPage(null);openPanel('settingsPanel')};
+$('overlay').onclick=closePanels;
+for(const button of document.querySelectorAll('[data-close]'))button.onclick=closePanels;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanels()});
+
+/* Thème choisi, mémorisé si le navigateur l'autorise. */
+const validThemes=['dark','light','aero','skeuo','dark-aero'];
+function setTheme(name){
+ if(validThemes.indexOf(name)<0)name='dark';
+ document.documentElement.setAttribute('data-theme',name);
+ for(const b of document.querySelectorAll('[data-theme-choice]'))b.setAttribute('aria-pressed',String(b.getAttribute('data-theme-choice')===name));
+ try{localStorage.setItem('switch2tube-theme',name)}catch(e){}
+}
+let savedTheme='dark';try{savedTheme=localStorage.getItem('switch2tube-theme')||'dark'}catch(e){}
+setTheme(savedTheme);
+for(const b of document.querySelectorAll('[data-theme-choice]'))b.onclick=()=>setTheme(b.getAttribute('data-theme-choice'));
+const initial=new URLSearchParams(location.search).get('v');if(initial&&videoId(initial))show(videoId(initial));
+</script></body></html>
